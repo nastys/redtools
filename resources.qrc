@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>3DS_icon_MD.png</file>
+        <file>MD_shadow.png</file>
+        <file>toEMU.png</file>
+        <file>toRED.png</file>
+    </qresource>
+</RCC>
