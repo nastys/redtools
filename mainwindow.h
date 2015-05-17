@@ -26,22 +26,22 @@ class MainWindow;
 }
 
 class MainWindow : public QMainWindow
-{
-    Q_OBJECT
+	{
+	Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+	explicit MainWindow(QWidget *parent = 0);
+	~MainWindow();
 
 private slots:
-    void on_toRED_clicked();
+	void on_toRED_clicked();
 
-    void runShellCommand(QString command);
-
-    void on_toEMU_clicked();
+	void on_toEMU_clicked();
 
 private:
-    Ui::MainWindow *ui;
+	void copy_file_skip(const QString &in, const QString &out, unsigned int skip);
+
+	Ui::MainWindow *ui;
 };
 
 #endif // MAINWINDOW_H

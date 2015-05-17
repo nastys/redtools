@@ -25,68 +25,76 @@
 #include <QInputDialog>
 #include <QDesktopServices>
 
-QFile pv("/usr/bin/pv");
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+	QMainWindow(parent),
+	ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
+	ui->setupUi(this);
 }
 
 MainWindow::~MainWindow()
 {
-    delete ui;
+	delete ui;
 }
 
 void MainWindow::on_toRED_clicked()
 {
-    QString backuppath=QFileDialog::getOpenFileName(this, "LOAD emuNAND");
-    if(backuppath=="")
-        return;
+	QString backuppath = QFileDialog::getOpenFileName(this, "LOAD emuNAND");
+	if (backuppath == "")
+		return;
 
-    QString saveas=QFileDialog::getSaveFileName(this, "Select where to SAVE the redNAND backup", "redNAND.RND","All files (*)");
-    if(saveas=="")
-        return;
+	QString saveas = QFileDialog::getSaveFileName(this, "Select where to SAVE the redNAND backup", "redNAND.RND","All files (*)");
+	if (saveas == "")
+		return;
 
-    runShellCommand("rm \""+saveas+"\"");
+	QFile::remove(saveas);
 
-    runShellCommand("fallocate -l 512 \""+saveas+"\"");
-    if(pv.exists())
-        runShellCommand("dd if=\""+backuppath+"\" | pv | dd of=\""+saveas+"\" seek=1");
-    else
-        runShellCommand("dd if=\""+backuppath+"\" of=\""+saveas+"\" seek=1");
+	//runShellCommand("fallocate -l 512 \""+saveas+"\"");
 
-    QMessageBox::information(this, "Convert to redNAND", "Done!");
-}
+	copy_file_skip(backuppath, saveas, 512);
 
-void MainWindow::runShellCommand(QString command)
-{
-    QFile xterm("/usr/bin/xterm");
-    QProcess shell;
-    if(xterm.exists())
-        shell.start("xterm", QStringList() << "-e" << command);
-    else
-        shell.start("bash", QStringList() << "-c" << command);
-    shell.waitForFinished(-1);
+	QMessageBox::information(this, "Convert to redNAND", "Done!");
 }
 
 void MainWindow::on_toEMU_clicked()
 {
-    QString backuppath=QFileDialog::getOpenFileName(this, "LOAD redNAND");
-    if(backuppath=="")
-        return;
+	QString backuppath = QFileDialog::getOpenFileName(this, "LOAD redNAND");
+	if (backuppath == "")
+		return;
 
-    QString saveas=QFileDialog::getSaveFileName(this, "Select where to SAVE the emuNAND backup", "emuNAND.BIN","All files (*)");
-    if(saveas=="")
-        return;
+	QString saveas = QFileDialog::getSaveFileName(this, "Select where to SAVE the emuNAND backup", "emuNAND.BIN","All files (*)");
+	if (saveas == "")
+		return;
 
-        runShellCommand("rm \""+saveas+"\"");
+	QFile::remove(saveas);
 
-        if(pv.exists())
-            runShellCommand("dd bs=512 skip=1 if=\""+backuppath+"\" | pv | dd of=\""+saveas+"\"");
-        else
-            runShellCommand("dd bs=512 skip=1 if=\""+backuppath+"\" of=\""+saveas+"\"");
+	copy_file_skip(backuppath, saveas, 512);
 
-        QMessageBox::information(this, "Convert to emuNAND", "Done!");
+	QMessageBox::information(this, "Convert to emuNAND", "Done!");
+}
+
+void MainWindow::copy_file_skip(const QString &in, const QString &out, unsigned int skip)
+{
+	#define BLOCK_SIZE (8*1024)
+
+	QFile fin(in);
+	if (!fin.open(QIODevice::ReadOnly))
+		return;
+
+	QFile fout(out);
+	if (!fout.open(QIODevice::WriteOnly))
+		return;
+
+	fout.seek(skip);
+
+	char buffer[BLOCK_SIZE];
+	qint64 nread = 0;
+
+	while ((nread = fin.read(buffer, BLOCK_SIZE)) > 0) {
+		fout.write(buffer, nread);
+	}
+
+	fin.close();
+	fout.close();
 }
