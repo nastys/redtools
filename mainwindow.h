@@ -39,7 +39,7 @@ private slots:
 	void on_toEMU_clicked();
 
 private:
-	void copy_file_skip(const QString &in, const QString &out, qint64 skip);
+	void copy_file_seek(const QString &in, const QString &out, qint64 seek_in, qint64 seek_out);
 
 	Ui::MainWindow *ui;
 };

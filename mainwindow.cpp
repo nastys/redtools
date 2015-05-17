@@ -54,7 +54,8 @@ void MainWindow::on_toRED_clicked()
 
 	//runShellCommand("fallocate -l 512 \""+saveas+"\"");
 
-	copy_file_skip(backuppath, saveas, 512);
+	//Byte 0 fin goes to byte 512 fout
+	copy_file_seek(backuppath, saveas, 0, 512);
 
 	QMessageBox::information(this, "Convert to redNAND", "Done!");
 }
@@ -72,12 +73,13 @@ void MainWindow::on_toEMU_clicked()
 	if (QFile::exists(saveas))
 		QFile::remove(saveas);
 
-	copy_file_skip(backuppath, saveas, 512);
+	//Byte 512 fin goes to byte 0 fout
+	copy_file_seek(backuppath, saveas, 512, 0);
 
 	QMessageBox::information(this, "Convert to emuNAND", "Done!");
 }
 
-void MainWindow::copy_file_skip(const QString &in, const QString &out, qint64 skip)
+void MainWindow::copy_file_seek(const QString &in, const QString &out, qint64 seek_in, qint64 seek_out)
 {
 	#define BLOCK_SIZE (8*1024)
 
@@ -93,7 +95,8 @@ void MainWindow::copy_file_skip(const QString &in, const QString &out, qint64 sk
 		return;
 
 	size = fin.size();
-	fout.seek(skip);
+	fin.seek(seek_in);
+	fout.seek(seek_out);
 
 	ui->progressBar->setValue(0);
 	ui->progressBar->setRange(0, size);
